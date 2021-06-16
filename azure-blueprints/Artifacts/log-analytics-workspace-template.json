@@ -1,0 +1,64 @@
+{
+  "kind": "template",
+  "type": "Microsoft.Blueprint/blueprints/artifacts",
+  "name": "log-analytics-workspace-template",
+  "properties": {
+    "displayName": "OperationalInsights workspaces",
+    "dependsOn": [],
+    "template": {
+      "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "omsWorkspaceName": {
+          "type": "string",
+          "metadata": {
+              "description": "Assign a name for the Log Analytic Workspace Name"
+          }
+        },
+        "omsSku": {
+          "type": "string"
+        }
+      },
+      "resources": [
+        {
+          "type": "Microsoft.OperationalInsights/workspaces",
+          "apiVersion": "2015-11-01-preview",
+          "name": "[parameters('omsWorkspaceName')]",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "sku": {
+                "name": "[parameters('omsSku')]"
+            }
+          }
+        },
+        {
+          "type": "Microsoft.OperationsManagement/solutions",
+          "apiVersion": "2015-11-01-preview",
+          "name": "[concat('ContainerInsights', '(', split(resourceId('Microsoft.OperationalInsights/workspaces', parameters('omsWorkspaceName')),'/')[8], ')')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+              "[concat('Microsoft.OperationalInsights/workspaces/', parameters('omsWorkspaceName'))]"
+          ],
+          "properties": {
+              "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('omsWorkspaceName'))]"
+          },
+          "plan": {
+            "name": "[concat('ContainerInsights', '(', split(resourceId('Microsoft.OperationalInsights/workspaces', parameters('omsWorkspaceName')),'/')[8], ')')]",
+              "product": "[concat('OMSGallery/', 'ContainerInsights')]",
+              "promotionCode": "",
+              "publisher": "Microsoft"
+          }
+      }
+      ]
+    },
+    "resourceGroup": "AKSclusterRG",
+    "parameters": {
+      "omsWorkspaceName": {
+        "value": "[parameters('omsWorkspaceName')]"
+      },
+      "omsSku": {
+        "value": "[parameters('omsSku')]"
+      }
+    }
+  }
+}

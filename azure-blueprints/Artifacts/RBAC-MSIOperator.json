@@ -1,0 +1,12 @@
+{
+  "kind": "roleAssignment",
+  "type": "Microsoft.Blueprint/blueprints/artifacts",
+  "name": "RBAC-MSIOperator",
+  "properties": {
+    "displayName": "Managed Identity Operator Role Assignment",
+    "dependsOn": [],
+    "roleDefinitionId": "/providers/Microsoft.Authorization/roleDefinitions/f1a07417-d97a-45cb-824c-7a7467783830",
+    "principalIds": ["[parameters('aksClusterSpId')]"],
+    "resourceGroup": "AKSclusterRG"
+  }
+}

@@ -1,0 +1,257 @@
+{
+  "properties": {
+    "displayName": "Basic Networking (VNET)",
+    "description": "Configures a virtual network with a subnet, an NSG and AKS cluster.",
+    "targetScope": "subscription",
+    "parameters": {
+      "location": {
+        "type": "string",
+        "metadata": {
+          "description": "Location of the resources"
+        },
+        "defaultValue": "uksouth",
+        "allowedValues": ["uksouth", "ukwest"]
+      },
+      "vnetNamePrefix": {
+        "type": "string",
+        "metadata": {
+          "displayName": "vnet name prefix",
+          "description": "VNET prefix name"
+        }
+      },
+      "addressSpaceForVnet": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Addess space for vnet"
+        },
+        "defaultValue": "10.0.0.0/8"
+      },
+      "cidrSubnetNodepool": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Addess space for nodepool subnet"
+        },
+        "defaultValue": "10.10.0.0/16"
+      },
+      "cidrSubnetGatewaypool": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Addess space for gateway subnet"
+        },
+        "defaultValue": "10.11.0.0/16"
+      },
+      "aksClusterSpId": {
+        "type": "string",
+        "metadata": {
+          "displayName": "AKS cluster Network Contributor for VNET",
+          "strongType": "PrincipalId"
+        }
+      },
+      "aksclusterNamePrefix": {
+        "type": "string",
+        "metadata": {
+          "displayName": "AKS Cluster Name",
+          "description": "AKS Cluster Name"
+        }
+      },
+      "omsWorkspaceName": {
+        "type": "string",
+        "metadata": {
+            "description": "Assign a name for the Log Analytic Workspace Name"
+        }
+      },
+      "omsSku": {
+        "type": "string",
+        "defaultValue": "Free",
+        "allowedValues": ["Free", "Standard", "Premium", "Standalone", "PerNode", "PerGB2018", "CapacityReservation", "LACluster"]
+      },
+      "kubernetesVersion": {
+        "defaultValue": "1.19.9",
+        "type": "string",
+        "metadata": {
+            "description": "The version of Kubernetes."
+        }
+      },
+      "dnsPrefix": {
+        "type": "string",
+        "defaultValue": "aksadcluster",
+        "metadata": {
+            "description": "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
+        }
+      },
+      "enableRBAC": {
+        "defaultValue": true,
+        "type": "bool",
+        "metadata": {
+            "description": "boolean flag to turn on and off of RBAC"
+        }
+      },
+      "enableAvailabilityZone": {
+        "type": "bool",
+        "defaultValue": true
+      },
+      "availabilityZone": {
+        "type": "array",
+        "defaultValue": null
+      },
+      "loadBalancer": {
+        "type": "string",
+        "defaultValue": "standard"
+      },
+      "outboundType": {
+        "type": "string",
+        "defaultValue": "userDefinedRouting"
+      },
+      "nodeCount": {
+        "type": "int",
+        "defaultValue": 3
+      },
+      "gwNodeCount": {
+        "type": "int",
+        "defaultValue": 1
+      },
+      "minGwNodeCount": {
+        "type": "int"
+      },
+      "maxGwNodeCount": {
+        "type": "int"
+      },
+      "minNodeCount": {
+        "type": "int"
+      },
+      "maxNodeCount": {
+        "type": "int"
+      },
+      "gwNodePoolName": {
+        "type": "string"
+      },
+      "enableAutoScaling": {
+        "type": "bool",
+        "defaultValue": true
+      },
+      "enableDiagnostics": {
+        "type": "bool",
+        "defaultValue": true
+      },
+      "nodePoolName": {
+        "type": "string"
+      },
+      "nodeVmSize": {
+        "type": "string",
+        "defaultValue": "Standard_B4ms",
+        "metadata": {
+          "description": "The size of the node Virtual Machine."
+        }
+      },
+      "gwNodeVmSize": {
+        "type": "string",
+        "defaultValue": "Standard_B2s",
+        "metadata": {
+          "description": "The size of the gateway Virtual Machine."
+        }
+      },
+      "maxPods": {
+        "type": "int",
+        "defaultValue": 50
+      },
+      "maxGwPods": {
+        "type": "int",
+        "defaultValue": 16
+      },
+      "osType": {
+        "type": "string",
+        "defaultValue": "Linux",
+        "allowedValues": ["Linux"]
+      },
+      "networkPlugin": {
+        "allowedValues": [
+            "azure",
+            "kubenet"
+        ],
+        "defaultValue": "azure",
+        "type": "string",
+        "metadata": {
+            "description": "Network plugin used for building Kubernetes network."
+        }
+      },
+      "osDiskSizeGB": {
+        "defaultValue": 256,
+        "minValue": 0,
+        "maxValue": 1023,
+        "type": "int",
+        "metadata": {
+            "description": "Disk size (in GB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize."
+        }
+      },
+      "serviceCidr": {
+        "type": "string",
+        "defaultValue": "10.0.0.0/16",
+        "metadata": {
+            "description": "A CIDR notation IP range from which to assign service cluster IPs."
+        }
+      },
+      "dnsServiceIP": {
+          "type": "string",
+          "defaultValue": "10.0.0.10",
+          "metadata": {
+              "description": "Containers DNS server IP address."
+          }
+      },
+      "dockerBridgeCidr": {
+          "type": "string",
+          "defaultValue": "172.17.0.1/16",
+          "metadata": {
+              "description": "A CIDR notation IP for Docker bridge."
+          }
+      },
+      "servicePrincipalClientId": {
+        "type": "string",
+        "metadata": {
+          "description": "Client ID (used by cloudprovider)"
+        }
+      },
+      "servicePrincipalClientSecret": {
+        "type": "string",
+        "metadata": {
+          "description": "The Service Principal Client Secret."
+        }
+      },
+      "enablePrivateAKS": {
+        "type": "bool",
+        "defaultValue": false
+      },
+      "name": {
+        "type": "string"
+    },
+    "locationName": {
+        "type": "string"
+    },
+    "defaultExperience": {
+        "type": "string",
+        "defaultValue": "Azure Cosmos DB for MongoDB API"
+    },
+    "isZoneRedundant": {
+        "type": "string"
+    }
+
+    },
+    "resourceGroups": {
+      "vnetRG": {
+        "name": "[concat(parameters('vnetNamePrefix'),'-RG')]",
+        "location": "[parameters('location')]",
+        "metadata": {
+          "displayName": "VNET Resource Group"
+        },
+        "dependsOn": []
+      },
+      "AKSclusterRG": {
+        "name": "[concat(parameters('aksclusterNamePrefix'),'-RG')]",
+        "location": "[parameters('location')]",
+        "metadata": {
+          "displayName": "AKS Cluster Resource Group"
+        },
+        "dependsOn": ["vnetRG"]
+      }
+    }
+  }
+}

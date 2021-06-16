@@ -1,0 +1,89 @@
+{
+    "kind": "template",
+    "type": "Microsoft.Blueprint/blueprints/artifacts",
+    "name": "cosmosdb-template",
+    "properties": {
+      "displayName": "cosmosdb",
+      "dependsOn": [],
+      "template": {
+        "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+        "contentVersion": "1.0.0.0",
+        "parameters": {
+            "name": {
+                "type": "string"
+            },
+            "locationName": {
+                "type": "string"
+            },
+            "defaultExperience": {
+                "type": "string"
+            },
+            "isZoneRedundant": {
+                "type": "string"
+            }
+        },
+        "resources": [
+          {
+            "type": "Microsoft.DocumentDb/databaseAccounts",
+            "apiVersion": "2021-05-01-preview",
+            "name": "[parameters('name')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "defaultExperience": "[parameters('defaultExperience')]",
+                "hidden-cosmos-mmspecial": ""
+            },
+            "properties": {
+                "databaseAccountOfferType": "Standard",
+                "locations": [
+                    {
+                        "id": "[concat(parameters('name'), '-', parameters('location'))]",
+                        "failoverPriority": 0,
+                        "locationName": "[parameters('locationName')]"
+                    }
+                ],
+                "backupPolicy": {
+                    "type": "Periodic",
+                    "periodicModeProperties": {
+                        "backupIntervalInMinutes": 240,
+                        "backupRetentionIntervalInHours": 8,
+                        "backupStorageRedundancy": "Geo"
+                    }
+                },
+                "isVirtualNetworkFilterEnabled": false,
+                "virtualNetworkRules": [],
+                "ipRules": [],
+                "dependsOn": [],
+                "enableMultipleWriteLocations": false,
+                "capabilities": [
+                    {
+                        "name": "EnableMongo"
+                    },
+                    {
+                        "name": "DisableRateLimitingResponses"
+                    }
+                ],
+                "apiProperties": {
+                    "serverVersion": "4.0"
+                },
+                "enableFreeTier": true
+            }
+          }
+        ]
+      },
+      "resourceGroup": "AKSclusterRG",
+      "parameters": {
+        "name": {
+          "value": "[parameters('name')]"
+        },
+        "locationName": {
+          "value": "[parameters('locationName')]"
+        },
+        "defaultExperience": {
+            "value": "[parameters('defaultExperience')]"
+          },
+          "isZoneRedundant": {
+            "value": "[parameters('isZoneRedundant')]"
+          }
+      }
+    }
+  }

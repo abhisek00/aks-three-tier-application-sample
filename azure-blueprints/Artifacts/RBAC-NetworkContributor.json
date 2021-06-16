@@ -1,0 +1,12 @@
+{
+  "kind": "roleAssignment",
+  "type": "Microsoft.Blueprint/blueprints/artifacts",
+  "name": "RBAC-NetworkContributor",
+  "properties": {
+    "displayName": "Network Contributor for AKS SP",
+    "dependsOn": [],
+    "roleDefinitionId": "/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7",
+    "principalIds": ["[parameters('aksClusterSpId')]"],
+    "resourceGroup": "vnetRG"
+  }
+}

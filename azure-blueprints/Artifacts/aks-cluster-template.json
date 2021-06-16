@@ -1,0 +1,353 @@
+{
+  "kind": "template",
+  "type": "Microsoft.Blueprint/blueprints/artifacts",
+  "name": "aks-cluster-template",
+  "properties": {
+    "displayName": "AKS Cluster creation",
+    "dependsOn": [
+      "vnet-and-subnet-template",
+      "log-analytics-workspace-template"
+    ],
+    "template": {
+      "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "aksclusterNamePrefix": {
+          "type": "string",
+          "defaultValue": "aksadcluster",
+            "metadata": {
+                "description": "The name of the Managed Cluster resource."
+            }
+        },
+        "kubernetesVersion": {
+          "defaultValue": "1.19.9",
+          "type": "string",
+          "metadata": {
+              "description": "The version of Kubernetes."
+          }
+        },
+        "dnsPrefix": {
+          "type": "string",
+          "defaultValue": "aksadcluster",
+          "metadata": {
+              "description": "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
+          }
+        },
+        "enableRBAC": {
+          "defaultValue": true,
+          "type": "bool",
+          "metadata": {
+              "description": "boolean flag to turn on and off of RBAC"
+          }
+        },
+        "enableAvailabilityZone": {
+          "type": "bool",
+          "defaultValue": true
+        },
+        "availabilityZone": {
+          "type": "array",
+          "defaultValue": null
+        },
+        "loadBalancer": {
+          "type": "string",
+          "defaultValue": "standard"
+        },
+        "outboundType": {
+          "type": "string",
+          "defaultValue": "userDefinedRouting"
+        },
+        "nodeCount": {
+          "type": "int",
+          "defaultValue": 3
+        },
+        "gwNodeCount": {
+          "type": "int",
+          "defaultValue": 1
+        },
+        "minGwNodeCount": {
+          "type": "int"
+        },
+        "maxGwNodeCount": {
+          "type": "int"
+        },
+        "minNodeCount": {
+          "type": "int"
+        },
+        "maxNodeCount": {
+          "type": "int"
+        },
+        "gwNodePoolName": {
+          "type": "string"
+        },
+        "enableAutoScaling": {
+          "type": "bool",
+          "defaultValue": true
+        },
+        "enableDiagnostics": {
+          "type": "bool",
+          "defaultValue": true
+        },
+        "nodePoolName": {
+          "type": "string"
+        },
+        "nodeVmSize": {
+          "type": "string",
+          "defaultValue": "Standard_B2s",
+          "metadata": {
+            "description": "The size of the node Virtual Machine."
+          }
+        },
+        "gwNodeVmSize": {
+          "type": "string",
+          "defaultValue": "Standard_B2s",
+          "metadata": {
+            "description": "The size of the gateway Virtual Machine."
+          }
+        },
+        "maxPods": {
+          "type": "int",
+          "defaultValue": 50
+        },
+        "maxGwPods": {
+          "type": "int",
+          "defaultValue": 16
+        },
+        "osType": {
+          "type": "string",
+          "defaultValue": "Linux",
+          "allowedValues": ["Linux"]
+        },
+        "networkPlugin": {
+          "allowedValues": [
+              "azure",
+              "kubenet"
+          ],
+          "defaultValue": "azure",
+          "type": "string",
+          "metadata": {
+              "description": "Network plugin used for building Kubernetes network."
+          }
+        },
+        "osDiskSizeGB": {
+          "defaultValue": 256,
+          "minValue": 0,
+          "maxValue": 1023,
+          "type": "int",
+          "metadata": {
+              "description": "Disk size (in GB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize."
+          }
+        },
+        "vnetNamePrefix": {
+          "type": "string"
+        },
+        "serviceCidr": {
+          "type": "string",
+          "defaultValue": "10.0.0.0/16",
+          "metadata": {
+              "description": "A CIDR notation IP range from which to assign service cluster IPs."
+          }
+        },
+        "dnsServiceIP": {
+            "type": "string",
+            "defaultValue": "10.0.0.10",
+            "metadata": {
+                "description": "Containers DNS server IP address."
+            }
+        },
+        "dockerBridgeCidr": {
+            "type": "string",
+            "defaultValue": "172.17.0.1/16",
+            "metadata": {
+                "description": "A CIDR notation IP for Docker bridge."
+            }
+        },
+        "servicePrincipalClientId": {
+          "type": "string",
+          "metadata": {
+            "description": "Client ID (used by cloudprovider)"
+          }
+        },
+        "servicePrincipalClientSecret": {
+          "type": "string",
+          "metadata": {
+            "description": "The Service Principal Client Secret."
+          }
+        },
+        "enablePrivateAKS": {
+          "type": "bool",
+          "defaultValue": false
+        },
+        "omsWorkspaceName": {
+          "type": "string",
+          "metadata": {
+              "description": "Assign a name for the Log Analytic Workspace Name"
+          }
+        }
+      },
+      "variables": {
+        "logAnalyticsSecWorkspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('omsWorkspaceName'))]"
+      },
+      "resources": [
+        {
+          "type": "Microsoft.ContainerService/managedClusters",
+          "apiVersion": "2020-02-01",
+          "location": "[resourceGroup().location]",
+          "name": "[concat(parameters('aksclusterNamePrefix'), '-aks')]",
+          "identity": {
+            "type": "SystemAssigned"
+          },
+          "properties": {
+            "kubernetesVersion": "[parameters('kubernetesVersion')]",
+            "dnsPrefix": "[parameters('dnsPrefix')]",
+            "enableRBAC": "[parameters('enableRBAC')]",
+            "agentPoolProfiles": [
+               {
+                  "name": "[toLower(parameters('nodePoolName'))]",
+                  "maxPods": "[parameters('maxPods')]",
+                  "osDiskSizeGB": "[parameters('osDiskSizeGB')]",
+                  "count": "[parameters('nodeCount')]",
+                  "vmSize": "[parameters('nodeVmSize')]",
+                  "vnetSubnetID": "[resourceId(concat(parameters('vnetNamePrefix'),'-RG'),'Microsoft.Network/virtualNetworks/subnets',concat(parameters('vnetNamePrefix'), '-vnet'),concat(parameters('vnetNamePrefix'), 'nodepool'))]",
+                  "enableAutoScaling": "[parameters('enableAutoScaling')]",
+                  "maxCount": "[parameters('maxNodeCount')]",
+                  "minCount": "[parameters('minNodeCount')]",
+                  "type": "VirtualMachineScaleSets",
+                  "availabilityZones": "[if(equals(parameters('enableAvailabilityZone'), bool('true')), parameters('availabilityZone'), json('null'))]",
+                  "nodeLabels" : {
+                    "nodepool": "[parameters('nodePoolName')]"
+                  }
+                },
+                {
+                  "name": "[toLower(parameters('gwNodePoolName'))]",
+                  "maxPods": "[parameters('maxGwPods')]",
+                  "osDiskSizeGB": "[parameters('osDiskSizeGB')]",
+                  "count": "[parameters('gwNodeCount')]",
+                  "vmSize": "[parameters('gwNodeVmSize')]",
+                  "vnetSubnetID": "[resourceId(concat(parameters('vnetNamePrefix'),'-RG'),'Microsoft.Network/virtualNetworks/subnets',concat(parameters('vnetNamePrefix'), '-vnet'),concat(parameters('vnetNamePrefix'), 'gwnodepool'))]",
+                  "enableAutoScaling": "[parameters('enableAutoScaling')]",
+                  "maxCount": "[parameters('maxGwNodeCount')]",
+                  "minCount": "[parameters('minGwNodeCount')]",
+                  "type": "VirtualMachineScaleSets",
+                  "availabilityZones": "[if(equals(parameters('enableAvailabilityZone'), bool('true')), parameters('availabilityZone'), json('null'))]",
+                  "nodeTaints": [
+                    "gwnodepool=true:NoSchedule"
+                  ],
+                  "nodeLabels": {
+                    "nodepool": "[parameters('gwNodePoolName')]"
+                  }
+                }
+            ],
+            "networkProfile": {
+              "networkPlugin": "[parameters('networkPlugin')]",
+              "serviceCidr": "[parameters('serviceCidr')]",
+              "dnsServiceIP": "[parameters('dnsServiceIP')]",
+              "dockerBridgeCidr": "[parameters('dockerBridgeCidr')]",
+              "loadBalancerSku": "[if(equals(parameters('enableAvailabilityZone'), bool('true')), parameters('loadBalancer') , json('null'))]"
+            },
+            "addonProfiles": {
+              "kubeDashboard": {
+                "enabled": false
+              },
+              "omsagent": {
+                "enabled": true,
+                "config": {
+                  "logAnalyticsWorkspaceResourceID": "[variables('logAnalyticsSecWorkspaceId')]"
+                }
+              }
+            },
+            "apiServerAccessProfile": {
+              "enablePrivateCluster": "[parameters('enablePrivateAKS')]"
+            }
+          }
+        }
+      ]
+    },
+    "parameters": {
+      "aksclusterNamePrefix": {
+        "value": "[parameters('aksclusterNamePrefix')]"
+      },
+      "kubernetesVersion": {
+        "value": "[parameters('kubernetesVersion')]"
+      },
+      "enableRBAC": {
+        "value": "[parameters('enableRBAC')]"
+      },
+      "enableAvailabilityZone": {
+        "value": "[parameters('enableAvailabilityZone')]"
+      },
+      "availabilityZone": {
+        "value": "[parameters('availabilityZone')]"
+      },
+      "loadBalancer": {
+        "value": "[parameters('loadBalancer')]"
+      },
+      "outboundType": {
+        "value": "[parameters('outboundType')]"
+      },
+      "maxPods": {
+        "value": "[parameters('maxPods')]"
+      },
+      "maxGwPods": {
+        "value": "[parameters('maxGwPods')]"
+      },
+      "nodeCount": {
+        "value": "[parameters('nodeCount')]"
+      },
+      "gwNodeCount": {
+        "value": "[parameters('gwNodeCount')]"
+      },
+      "enableAutoScaling": {
+        "value": "[parameters('enableAutoScaling')]"
+      },
+      "enableDiagnostics": {
+        "value": "[parameters('enableDiagnostics')]"
+      },
+      "minNodeCount": {
+        "value": "[parameters('minNodeCount')]"
+      },
+      "minGwNodeCount": {
+        "value": "[parameters('minGwNodeCount')]"
+      },
+      "maxNodeCount": {
+        "value": "[parameters('maxNodeCount')]"
+      },
+      "maxGwNodeCount": {
+        "value": "[parameters('maxGwNodeCount')]"
+      },
+      "nodePoolName": {
+        "value": "[parameters('nodePoolName')]"
+      },
+      "gwNodePoolName": {
+        "value": "[parameters('gwNodePoolName')]"
+      },
+      "nodeVmSize": {
+        "value": "[parameters('nodeVmSize')]"
+      },
+      "gwNodeVmSize": {
+        "value": "[parameters('gwNodeVmSize')]"
+      },
+      "vnetNamePrefix": {
+        "value": "[parameters('vnetNamePrefix')]"
+      },
+      "serviceCidr": {
+        "value": "[parameters('serviceCidr')]"
+      },
+      "dnsServiceIP": {
+        "value": "[parameters('dnsServiceIP')]"
+      },
+      "servicePrincipalClientId": {
+        "value": "[parameters('servicePrincipalClientId')]"
+      },
+      "servicePrincipalClientSecret": {
+        "value": "[parameters('servicePrincipalClientSecret')]"
+      },
+      "enablePrivateAKS": {
+        "value": "[parameters('enablePrivateAKS')]"
+      },
+      "omsWorkspaceName": {
+        "value": "[parameters('omsWorkspaceName')]"
+      }
+    },
+    "resourceGroup": "AKSclusterRG"
+  }
+}
